@@ -1,0 +1,28 @@
+name: Build WF
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: BuildCode
+        run: mvn install
+
+  Testing:
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: TestingCode
+        run: mvn test
+      
+      - name: checkstyle
+        run: mvn checkstyle:check
+        
