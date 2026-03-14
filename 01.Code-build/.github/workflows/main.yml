@@ -3,13 +3,15 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "01.Code-build/**"
 jobs:
   Build:
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
-        working-directory: ./01.code-build/
+        working-directory: 01.Code-build/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +25,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: ./01.code-build/
+        working-directory: 01.Code-build/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
