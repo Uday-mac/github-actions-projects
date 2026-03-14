@@ -86,7 +86,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [Build, Test, Scan,Aws-config-login-ecr]
     env:
-      ECR_REGISTRY: ${{ needs.Aws-config-login-ecr.steps.outputs.registry }}
+      ECR_REGISTRY: ${{ needs.Aws-config-login-ecr.outputs.registry }}
       IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: Building and pushing the docker image
