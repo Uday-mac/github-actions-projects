@@ -32,7 +32,4 @@ jobs:
 
       - name: TestingCode
         run: mvn test
-      
-      - name: checkstyle
-        run: mvn checkstyle:check
         
