@@ -87,19 +87,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: [Build, Test, Scan,Aws-config-login-ecr]
     environment: Dev
-    env:
-      ECR_REGISTRY: ${{ needs.Aws-config-login-ecr.outputs.registry }}
-      IMAGE_TAG: ${{ github.sha }}
-    steps:
+    steps:     
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
-      - name: Checkout
-        uses: actions/checkout@v6
+
+      - name: Login into ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
       - name: Building and pushing the docker image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
