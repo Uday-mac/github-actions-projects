@@ -2,7 +2,7 @@ name: Terraform
 on:
   push:
     branches:
-      - terrraform
+      - terraform
 
   workflow_dispatch:
 
