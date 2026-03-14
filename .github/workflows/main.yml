@@ -60,7 +60,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: code scanning
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
           scan-ref: '.'
