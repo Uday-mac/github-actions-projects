@@ -90,6 +90,6 @@ jobs:
       IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: Building and pushing the docker image
-        run: |
-          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
+        run: docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
+
+
