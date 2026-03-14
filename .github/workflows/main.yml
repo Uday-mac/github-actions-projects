@@ -91,5 +91,5 @@ jobs:
     steps:
       - name: Building and pushing the docker image
         run: |
-          docker -f Docker/Dockerfile build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
+          docker build -f Docker/Dockerfile -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
