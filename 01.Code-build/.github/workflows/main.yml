@@ -77,7 +77,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: 'fs'
-          scan-ref: '.'
+          scan-ref: '01.Code-build/'
           format: 'json'
           exit-code: 0
           vuln-type: 'os,library'
