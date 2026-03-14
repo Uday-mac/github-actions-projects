@@ -1,6 +1,9 @@
-name: Build WF
+name: Build On Feature Branch
 on:
-  push:
+#  push:
+#    branches:
+#      - main
+  pull_request:
     branches:
       - main
     paths:
