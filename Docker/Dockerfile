@@ -1,0 +1,10 @@
+FROM maven:3.9.9-eclipse-temurin-21-jammy as build_image
+WORKDIR /app
+COPY . /app
+RUN mvn install
+
+FROM tomcat:10-jdk21
+RUN rm -rf /var/www/html/*
+COPY --from=build_image /app/target/vprofile-v2.war /var/www/html/ROOT.war
+EXPOSE 8080
+CMD ["catalina.sh", "run"]

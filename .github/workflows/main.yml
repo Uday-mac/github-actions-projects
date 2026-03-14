@@ -1,77 +1,92 @@
-name: vprofile CICD WorkFlow
+name: Build and push to ECR
 on:
   push:
     branches:
-      - main
+      - ecr
   workflow_dispatch:
-  schedule:
-    - cron: "0 12 * * *" #runs the pipeline at scheduled
 
-
+env:
+  ECR_REPO: docker/vprofile-actions
 permissions:
   contents: read
 
-    
 jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: BuildCode
-        run: mvn install
+        uses: actions/checkout@v6
       
+      - name: Build artifact
+        run: mvn install
+
+      - name: Build failed
+        if: failure()
+        run: echo "Build failed"
+
       - name: upload the artifact
         uses: actions/upload-artifact@v4
         with:
-          name: vprofile
+          name: vprofile-app
           path: target/*.war
-
-      - name: Notify if build is failed
-        if: failure()
-        run: echo "build failed"
-
-  Testing:
-    needs: Build
+  Test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: checkout
+        uses: actions/checkout@v6
 
-      - name: TestingCode
+      - name: Test
         if: github.ref == 'refs/heads/main'
         run: mvn test
 
-      - name: checkstyle
+      - name: Checkstyle
         if: github.ref == 'refs/heads/main'
         run: mvn checkstyle:checkstyle
 
-      - name: skipping the test steps
+      - name: Skipping Test steps
         if: github.ref != 'refs/heads/main'
-        run: echo "skipping the test steps"
+        run: echo "skipping test steps"
 
-  code_scanning:
+  Scan:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [Build,Test]
     steps:
-      - name: checkout the code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: code scanning
-        uses: aquasecurity/trivy-action@master
+      - name: checkout
+        uses: actions/checkout@v6
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@0.33.1
         with:
           scan-type: 'fs'
           scan-ref: '.'
-          format: 'json'
           exit-code: 0
+          format: 'json'
           vuln-type: 'os,library'
           output: 'trivy-results.json'
 
-      - name: upload trivy scan artifact
-        uses: actions/upload-artifact@v4
+  Aws-config-login-ecr:
+    runs-on: ubuntu-latest
+    environment: Dev
+    needs: [Build, Test, Scan]
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: trivy-results
-          path: trivy-results.json
-        
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+      - name: Login into ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+  Build-push:
+    runs-on: ubuntu-latest
+    needs: [Build, Test, Scan,Aws-config-login-ecr]
+    env:
+      ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - name: Building and pushing the docker image
+        run: |
+          docker -f Docker/Dockerfile build -t $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
