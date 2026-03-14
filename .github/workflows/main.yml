@@ -1,77 +1,47 @@
-name: vprofile CICD WorkFlow
+name: Terraform
 on:
   push:
     branches:
-      - main
-  workflow_dispatch:
-  schedule:
-    - cron: "0 12 * * *" #runs the pipeline at scheduled
-
+      - terrraform
 
 permissions:
   contents: read
 
-    
 jobs:
-  Build:
+  terraform:
+    name: 'Terraform'
     runs-on: ubuntu-latest
+    environment: Dev
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: BuildCode
-        run: mvn install
-      
-      - name: upload the artifact
-        uses: actions/upload-artifact@v4
+      - name: aws config
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: vprofile
-          path: target/*.war
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.REGION }}
 
-      - name: Notify if build is failed
-        if: failure()
-        run: echo "build failed"
-
-  Testing:
-    needs: Build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: TestingCode
-        if: github.ref == 'refs/heads/main'
-        run: mvn test
-
-      - name: checkstyle
-        if: github.ref == 'refs/heads/main'
-        run: mvn checkstyle:checkstyle
-
-      - name: skipping the test steps
-        if: github.ref != 'refs/heads/main'
-        run: echo "skipping the test steps"
-
-  code_scanning:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: checkout the code
-        uses: actions/checkout@v4
+      - name: set up terrraform
+        uses: hashicorp/setup-terraform@v4
         with:
-          fetch-depth: 0
-      - name: code scanning
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'json'
-          exit-code: 0
-          vuln-type: 'os,library'
-          output: 'trivy-results.json'
+          terraform_version: '1.4.0'
 
-      - name: upload trivy scan artifact
-        uses: actions/upload-artifact@v4
+      - name: 'Checkout'
+        uses: actions/checkout@v6
+
+      - name: 'Terraform Format'
+        uses: 'terraform-linters/setup-tflint@v1'
         with:
-          name: trivy-results
-          path: trivy-results.json
-        
+          tflint_version: 'v0.30.0'
+
+      - name: 'Terraform Init'
+        run: 'terraform init'
+
+      - name: 'Terraform Validate'
+        run: 'terraform validate -no-color'
+
+      - name: 'Terraform Plan'
+        run: 'terraform plan -no-color -input=false'
+
+      - name: 'Terraform Apply'
+        if: github.ref == 'refs/heads/terraform' && github.event_name == 'push'
+        run: 'terraform apply -no-color -auto-approve'
