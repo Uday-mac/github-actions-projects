@@ -2,7 +2,7 @@ name: vprofile CICD WorkFlow
 on:
   push:
     branches:
-      - main
+      - docker
   workflow_dispatch:
   schedule:
     - cron: "0 12 * * *" #runs the pipeline at scheduled
@@ -74,4 +74,14 @@ jobs:
         with:
           name: trivy-results
           path: trivy-results.json
+
+  Image:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Buliding the image
+        run: docker build -f Docker/Dockerfile -t udaydevmac/vprofile:v1-${{ github.sha }} .
         
