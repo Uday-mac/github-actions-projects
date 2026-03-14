@@ -50,11 +50,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: TestingCode
-        if: github.ref = 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         run: mvn test
 
       - name: checkstyle
-        if: github.ref = 'refs/heads/main'
+        if: github.ref == 'refs/heads/main'
         run: mvn checkstyle:checkstyle
 
       - name: skipping the test steps
