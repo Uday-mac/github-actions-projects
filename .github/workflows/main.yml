@@ -93,5 +93,5 @@ jobs:
         env:
           DOCKER_REGISTRY: ${{ steps.docker_login.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
-        run: docker build -f Docker/Dockerfile -t $$DOCKER_REPO:$IMAGE_TAG .
+        run: docker build -f Docker/Dockerfile -t $DOCKER_REPO:$IMAGE_TAG .
         
