@@ -1,13 +1,19 @@
-name: Build On Feature Branch
+name: vprofile CICD WorkFlow
 on:
-#  push:
-#    branches:
-#      - main
-  pull_request:
+  push:
     branches:
       - main
     paths:
       - "01.Code-build/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 12 * * *" #runs the pipeline at scheduled
+
+
+permissions:
+  contents: read
+
+    
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -21,6 +27,16 @@ jobs:
 
       - name: BuildCode
         run: mvn install
+      
+      - name: dowload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vprofile
+          path: 01.Code-build/target/*.war
+
+      - name: Notify if build is failed
+        if: failure()
+        run: echo "build failed"
 
   Testing:
     needs: Build
@@ -34,8 +50,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: TestingCode
+        if: github.ref = 'refs/heads/main'
         run: mvn test
 
       - name: checkstyle
+        if: github.ref = 'refs/heads/main'
         run: mvn checkstyle:checkstyle
+
+      - name: skipping the test steps
+        if: github.ref != 'refs/heads/main'
+        run: echo "skipping the test steps"
         
