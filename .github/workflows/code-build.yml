@@ -9,7 +9,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: /01.code-build/
+        working-directory: 01.code-build/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: /01.code-build/
+        working-directory: 01.code-build/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
