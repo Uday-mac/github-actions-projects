@@ -7,11 +7,10 @@ on:
   schedule:
     - cron: "0 12 * * *" #runs the pipeline at scheduled
 
-
+env:
+  DOCKER_REPO: udaydevmac/docker-actions
 permissions:
   contents: read
-
-    
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -81,8 +80,18 @@ jobs:
     environment: Dev
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Buliding the image
-        run: docker build -f Docker/Dockerfile -t udaydevmac/vprofile:v1-${{ github.sha }} .
+      - name: Login to DockerHub
+        uses: docker/login-action@v4
+        id: docker_login
+        with:
+          username: ${{ vars.DOCKER_LOGIN_ID }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Buliding and pushing the docker image
+        env:
+          DOCKER_REGISTRY: ${{ steps.docker_login.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: docker build -f Docker/Dockerfile -t $DOCKER_REGISTRY/$DOCKER_REPO:$IMAGE_TAG .
         
