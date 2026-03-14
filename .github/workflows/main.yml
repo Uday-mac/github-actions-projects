@@ -89,9 +89,9 @@ jobs:
           username: ${{ vars.DOCKER_LOGIN_ID }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Buliding and pushing the docker image
+      - name: Building and pushing the docker image
         env:
           DOCKER_REGISTRY: ${{ steps.docker_login.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
-        run: docker build -f Docker/Dockerfile -t $DOCKER_REGISTRY/$DOCKER_REPO:$IMAGE_TAG .
+        run: docker build -f Docker/Dockerfile -t $$DOCKER_REPO:$IMAGE_TAG .
         
