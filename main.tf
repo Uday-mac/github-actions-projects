@@ -20,7 +20,7 @@ data "aws_ami" "ami-id" {
 
 resource "aws_instance" "test" {
   ami           = data.aws_ami.ami-id.id
-  instance_type = "t3.micro"
+  instance_type = "t2.micro"
 
   tags = {
     Name = "created-by-actions"
